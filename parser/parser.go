@@ -55,3 +55,16 @@ func EqualStreams(a, b []Token) bool {
 
 	return true
 }
+
+func (t Token) String() string {
+	switch t.Type {
+	case Identifier:
+		return "\x1b[91m" + t.Content + "\x1b[0m"
+	case Text:
+		return "\x1b[93m" + t.Content + "\x1b[0m"
+	case LeftBrace, RightBrace:
+		return "\x1b[95m" + t.Content + "\x1b[0m"
+	default:
+		return t.Content
+	}
+}
