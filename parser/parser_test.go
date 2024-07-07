@@ -1,7 +1,9 @@
 package parser_test
 
 import (
+	"bufio"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/ubavic/mint/parser"
@@ -68,7 +70,10 @@ func TestTokenizer(t *testing.T) {
 		t.Run(
 			fmt.Sprintf("TestTokenizer%d", i),
 			func(t *testing.T) {
-				result := parser.Tokenize(testCase.input)
+				reader := bufio.NewReader(strings.NewReader(testCase.input))
+				tokenizer := parser.NewTokenizer(reader)
+
+				result := tokenizer.Tokenize()
 				if !parser.EqualStreams(result, testCase.expectedResult) {
 					t.Errorf("Streams are not equal. Expected %v got %v", testCase.expectedResult, result)
 				}

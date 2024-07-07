@@ -1,6 +1,10 @@
 package parser
 
-import "slices"
+import (
+	"bufio"
+	"io"
+	"slices"
+)
 
 type TokenType uint
 
@@ -16,16 +20,32 @@ type Token struct {
 	Content string
 }
 
-func Tokenize(in string) []Token {
+type Tokenizer struct {
+	input *bufio.Reader
+}
+
+func NewTokenizer(input *bufio.Reader) Tokenizer {
+	return Tokenizer{
+		input: input,
+	}
+}
+
+func (tokenizer *Tokenizer) Tokenize() []Token {
 	tokens := []Token{}
 
-	runes := []rune(in)
-	length := len(runes)
+	for {
+		r, _, err := tokenizer.input.ReadRune()
+		if err != nil {
+			if err == io.EOF {
+				return tokens
+			}
 
-	for i := 0; i < length; i++ {
+			panic(err)
+		}
+
 		var token Token
 
-		switch in[i] {
+		switch r {
 		case '{':
 			token = Token{Type: LeftBrace, Content: "{"}
 		case '}':
@@ -33,20 +53,25 @@ func Tokenize(in string) []Token {
 		default:
 			text := ""
 
-			for i < length && !slices.Contains([]rune("{}"), runes[i]) {
-				text += string(runes[i])
-				i++
+			for !slices.Contains([]rune("{}"), r) {
+				text += string(r)
+
+				r, _, err = tokenizer.input.ReadRune()
+				if err != nil {
+					if err != io.EOF {
+						panic(err)
+					}
+					break
+				}
 			}
 
-			i--
+			tokenizer.input.UnreadRune()
 
 			token = Token{Type: Text, Content: text}
 		}
 
 		tokens = append(tokens, token)
 	}
-
-	return tokens
 }
 
 func EqualStreams(a, b []Token) bool {
