@@ -1,79 +1,81 @@
 package parser_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ubavic/mint/parser"
 )
 
 func TestTokenizer(t *testing.T) {
-	result := parser.Tokenize("")
-	if result == nil {
-		t.Error("Result must not be nil")
+
+	testCases := []struct {
+		input          string
+		expectedResult []parser.Token
+	}{
+		{
+			input:          "",
+			expectedResult: []parser.Token{},
+		},
+		{
+			input: "{}",
+			expectedResult: []parser.Token{
+				{Type: parser.LeftBrace, Content: "{"},
+				{Type: parser.RightBrace, Content: "}"},
+			},
+		},
+		{
+			input: "{hello world}",
+			expectedResult: []parser.Token{
+				{Type: parser.LeftBrace, Content: "{"},
+				{Type: parser.Text, Content: "hello world"},
+				{Type: parser.RightBrace, Content: "}"},
+			},
+		},
+		{
+			input: "{ }",
+			expectedResult: []parser.Token{
+				{Type: parser.LeftBrace, Content: "{"},
+				{Type: parser.Text, Content: " "},
+				{Type: parser.RightBrace, Content: "}"},
+			},
+		},
+		{
+			input: " { }",
+			expectedResult: []parser.Token{
+				{Type: parser.Text, Content: " "},
+				{Type: parser.LeftBrace, Content: "{"},
+				{Type: parser.Text, Content: " "},
+				{Type: parser.RightBrace, Content: "}"},
+			},
+		},
+		{
+			input: " ",
+			expectedResult: []parser.Token{
+				{Type: parser.Text, Content: " "},
+			},
+		},
+		{
+			input: "helloWorld}",
+			expectedResult: []parser.Token{
+				{Type: parser.Text, Content: "helloWorld"},
+				{Type: parser.RightBrace, Content: "}"},
+			},
+		},
 	}
 
-	result = parser.Tokenize("{}")
-	expects := []parser.Token{
-		{Type: parser.LeftBrace, Content: "{"},
-		{Type: parser.RightBrace, Content: "}"},
+	for i, testCase := range testCases {
+		t.Run(
+			fmt.Sprintf("TestTokenizer%d", i),
+			func(t *testing.T) {
+				result := parser.Tokenize(testCase.input)
+				if !parser.EqualStreams(result, testCase.expectedResult) {
+					t.Errorf("Streams are not equal. Expected %v got %v", testCase.expectedResult, result)
+				}
+			},
+		)
 	}
 
-	if !parser.EqualStreams(result, expects) {
-		t.Error("Streams are not equal")
-	}
-
-	result = parser.Tokenize("{hello world}")
-	expects = []parser.Token{
-		{Type: parser.LeftBrace, Content: "{"},
-		{Type: parser.Text, Content: "hello world"},
-		{Type: parser.RightBrace, Content: "}"},
-	}
-
-	if !parser.EqualStreams(result, expects) {
-		t.Errorf("Streams are not equal. Expected %v got %v", expects, result)
-	}
-
-	result = parser.Tokenize("{ }")
-	expects = []parser.Token{
-		{Type: parser.LeftBrace, Content: "{"},
-		{Type: parser.Text, Content: " "},
-		{Type: parser.RightBrace, Content: "}"},
-	}
-
-	if !parser.EqualStreams(result, expects) {
-		t.Errorf("Streams are not equal. Expected %v got %v", expects, result)
-	}
-
-	result = parser.Tokenize(" { }")
-	expects = []parser.Token{
-		{Type: parser.Text, Content: " "},
-		{Type: parser.LeftBrace, Content: "{"},
-		{Type: parser.Text, Content: " "},
-		{Type: parser.RightBrace, Content: "}"},
-	}
-
-	if !parser.EqualStreams(result, expects) {
-		t.Errorf("Streams are not equal. Expected %v got %v", expects, result)
-	}
-
-	result = parser.Tokenize(" ")
-	expects = []parser.Token{
-		{Type: parser.Text, Content: " "},
-	}
-
-	if !parser.EqualStreams(result, expects) {
-		t.Errorf("Streams are not equal. Expected %v got %v", expects, result)
-	}
-
-	result = parser.Tokenize("helloWorld}")
-	expects = []parser.Token{
-		{Type: parser.Text, Content: "helloWorld"},
-		{Type: parser.RightBrace, Content: "}"},
-	}
-
-	if !parser.EqualStreams(result, expects) {
-		t.Errorf("Streams are not equal. Expected %v got %v", expects, result)
-	}
 }
 
 func Test_EqualStreams(t *testing.T) {
