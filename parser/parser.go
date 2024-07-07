@@ -1,5 +1,7 @@
 package parser
 
+import "slices"
+
 type TokenType uint
 
 const (
@@ -17,15 +19,28 @@ type Token struct {
 func Tokenize(in string) []Token {
 	tokens := []Token{}
 
-	for _, r := range in {
+	runes := []rune(in)
+	length := len(runes)
+
+	for i := 0; i < length; i++ {
 		var token Token
 
-		switch r {
+		switch in[i] {
 		case '{':
 			token = Token{Type: LeftBrace, Content: "{"}
 		case '}':
 			token = Token{Type: RightBrace, Content: "}"}
+		default:
+			text := ""
 
+			for i < length && !slices.Contains([]rune("{}"), runes[i]) {
+				text += string(runes[i])
+				i++
+			}
+
+			i--
+
+			token = Token{Type: Text, Content: text}
 		}
 
 		tokens = append(tokens, token)

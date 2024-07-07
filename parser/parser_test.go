@@ -21,6 +21,59 @@ func TestTokenizer(t *testing.T) {
 	if !parser.EqualStreams(result, expects) {
 		t.Error("Streams are not equal")
 	}
+
+	result = parser.Tokenize("{hello world}")
+	expects = []parser.Token{
+		{Type: parser.LeftBrace, Content: "{"},
+		{Type: parser.Text, Content: "hello world"},
+		{Type: parser.RightBrace, Content: "}"},
+	}
+
+	if !parser.EqualStreams(result, expects) {
+		t.Errorf("Streams are not equal. Expected %v got %v", expects, result)
+	}
+
+	result = parser.Tokenize("{ }")
+	expects = []parser.Token{
+		{Type: parser.LeftBrace, Content: "{"},
+		{Type: parser.Text, Content: " "},
+		{Type: parser.RightBrace, Content: "}"},
+	}
+
+	if !parser.EqualStreams(result, expects) {
+		t.Errorf("Streams are not equal. Expected %v got %v", expects, result)
+	}
+
+	result = parser.Tokenize(" { }")
+	expects = []parser.Token{
+		{Type: parser.Text, Content: " "},
+		{Type: parser.LeftBrace, Content: "{"},
+		{Type: parser.Text, Content: " "},
+		{Type: parser.RightBrace, Content: "}"},
+	}
+
+	if !parser.EqualStreams(result, expects) {
+		t.Errorf("Streams are not equal. Expected %v got %v", expects, result)
+	}
+
+	result = parser.Tokenize(" ")
+	expects = []parser.Token{
+		{Type: parser.Text, Content: " "},
+	}
+
+	if !parser.EqualStreams(result, expects) {
+		t.Errorf("Streams are not equal. Expected %v got %v", expects, result)
+	}
+
+	result = parser.Tokenize("helloWorld}")
+	expects = []parser.Token{
+		{Type: parser.Text, Content: "helloWorld"},
+		{Type: parser.RightBrace, Content: "}"},
+	}
+
+	if !parser.EqualStreams(result, expects) {
+		t.Errorf("Streams are not equal. Expected %v got %v", expects, result)
+	}
 }
 
 func Test_EqualStreams(t *testing.T) {
