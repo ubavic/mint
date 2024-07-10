@@ -54,27 +54,38 @@ func (tokenizer *Tokenizer) Tokenize() []Token {
 			identifier := tokenizer.tokenizeIdentifier()
 			token = Token{Type: Identifier, Content: identifier}
 		default:
-			text := ""
-
-			for !slices.Contains([]rune("{}@"), r) {
-				text += string(r)
-
-				r, _, err = tokenizer.input.ReadRune()
-				if err != nil {
-					if err != io.EOF {
-						panic(err)
-					}
-					break
-				}
-			}
-
 			tokenizer.input.UnreadRune()
-
+			text := tokenizer.tokenizeText()
 			token = Token{Type: Text, Content: text}
 		}
 
 		tokens = append(tokens, token)
 	}
+}
+
+func (tokenizer *Tokenizer) tokenizeText() string {
+	text := ""
+
+	for {
+		r, _, err := tokenizer.input.ReadRune()
+
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				panic(err)
+			}
+		}
+
+		if slices.Contains([]rune("{}@"), r) {
+			tokenizer.input.UnreadRune()
+			break
+		}
+
+		text += string(r)
+	}
+
+	return text
 }
 
 func (tokenizer *Tokenizer) tokenizeIdentifier() string {
