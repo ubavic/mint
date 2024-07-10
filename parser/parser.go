@@ -50,10 +50,13 @@ func (tokenizer *Tokenizer) Tokenize() []Token {
 			token = Token{Type: LeftBrace, Content: "{"}
 		case '}':
 			token = Token{Type: RightBrace, Content: "}"}
+		case '@':
+			identifier := tokenizer.tokenizeIdentifier()
+			token = Token{Type: Identifier, Content: identifier}
 		default:
 			text := ""
 
-			for !slices.Contains([]rune("{}"), r) {
+			for !slices.Contains([]rune("{}@"), r) {
 				text += string(r)
 
 				r, _, err = tokenizer.input.ReadRune()
@@ -72,6 +75,34 @@ func (tokenizer *Tokenizer) Tokenize() []Token {
 
 		tokens = append(tokens, token)
 	}
+}
+
+func (tokenizer *Tokenizer) tokenizeIdentifier() string {
+	identifier := ""
+
+	for {
+		r, _, err := tokenizer.input.ReadRune()
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				panic(err)
+			}
+		}
+
+		if slices.Contains([]rune("{} @"), r) {
+			err := tokenizer.input.UnreadRune()
+			if err != nil {
+				panic(err)
+			}
+
+			break
+		}
+
+		identifier += string(r)
+	}
+
+	return identifier
 }
 
 func EqualStreams(a, b []Token) bool {
@@ -101,7 +132,7 @@ func (t Token) String() string {
 	case Identifier:
 		return "\x1b[91m" + t.Content + "\x1b[0m"
 	case Text:
-		return "\x1b[93m" + t.Content + "\x1b[0m"
+		return "\x1b[93m\"" + t.Content + "\"\x1b[0m"
 	case LeftBrace, RightBrace:
 		return "\x1b[95m" + t.Content + "\x1b[0m"
 	default:

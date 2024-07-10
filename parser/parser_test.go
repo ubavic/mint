@@ -64,6 +64,20 @@ func TestTokenizer(t *testing.T) {
 				{Type: parser.RightBrace, Content: "}"},
 			},
 		},
+		{
+			input: "@p",
+			expectedResult: []parser.Token{
+				{Type: parser.Identifier, Content: "p"},
+			},
+		},
+		{
+			input: "@p @a",
+			expectedResult: []parser.Token{
+				{Type: parser.Identifier, Content: "p"},
+				{Type: parser.Text, Content: " "},
+				{Type: parser.Identifier, Content: "a"},
+			},
+		},
 	}
 
 	for i, testCase := range testCases {
