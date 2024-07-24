@@ -13,6 +13,7 @@ const (
 	LeftBrace
 	RightBrace
 	Text
+	EOF
 )
 
 type Token struct {
@@ -37,6 +38,7 @@ func (tokenizer *Tokenizer) Tokenize() []Token {
 		r, _, err := tokenizer.input.ReadRune()
 		if err != nil {
 			if err == io.EOF {
+				tokens = append(tokens, Token{Type: EOF})
 				return tokens
 			}
 
@@ -61,6 +63,7 @@ func (tokenizer *Tokenizer) Tokenize() []Token {
 
 		tokens = append(tokens, token)
 	}
+
 }
 
 func (tokenizer *Tokenizer) tokenizeText() string {
@@ -146,6 +149,8 @@ func (t Token) String() string {
 		return "\x1b[93m\"" + t.Content + "\"\x1b[0m"
 	case LeftBrace, RightBrace:
 		return "\x1b[95m" + t.Content + "\x1b[0m"
+	case EOF:
+		return "\x1b[96mEOF\x1b[0m"
 	default:
 		return t.Content
 	}

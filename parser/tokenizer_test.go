@@ -16,14 +16,17 @@ func TestTokenizer(t *testing.T) {
 		expectedResult []parser.Token
 	}{
 		{
-			input:          "",
-			expectedResult: []parser.Token{},
+			input: "",
+			expectedResult: []parser.Token{
+				{Type: parser.EOF, Content: ""},
+			},
 		},
 		{
 			input: "{}",
 			expectedResult: []parser.Token{
 				{Type: parser.LeftBrace, Content: "{"},
 				{Type: parser.RightBrace, Content: "}"},
+				{Type: parser.EOF, Content: ""},
 			},
 		},
 		{
@@ -32,6 +35,7 @@ func TestTokenizer(t *testing.T) {
 				{Type: parser.LeftBrace, Content: "{"},
 				{Type: parser.Text, Content: "hello world"},
 				{Type: parser.RightBrace, Content: "}"},
+				{Type: parser.EOF, Content: ""},
 			},
 		},
 		{
@@ -40,6 +44,7 @@ func TestTokenizer(t *testing.T) {
 				{Type: parser.LeftBrace, Content: "{"},
 				{Type: parser.Text, Content: " "},
 				{Type: parser.RightBrace, Content: "}"},
+				{Type: parser.EOF, Content: ""},
 			},
 		},
 		{
@@ -49,12 +54,14 @@ func TestTokenizer(t *testing.T) {
 				{Type: parser.LeftBrace, Content: "{"},
 				{Type: parser.Text, Content: " "},
 				{Type: parser.RightBrace, Content: "}"},
+				{Type: parser.EOF, Content: ""},
 			},
 		},
 		{
 			input: " ",
 			expectedResult: []parser.Token{
 				{Type: parser.Text, Content: " "},
+				{Type: parser.EOF, Content: ""},
 			},
 		},
 		{
@@ -62,12 +69,14 @@ func TestTokenizer(t *testing.T) {
 			expectedResult: []parser.Token{
 				{Type: parser.Text, Content: "helloWorld"},
 				{Type: parser.RightBrace, Content: "}"},
+				{Type: parser.EOF, Content: ""},
 			},
 		},
 		{
 			input: "@p",
 			expectedResult: []parser.Token{
 				{Type: parser.Identifier, Content: "p"},
+				{Type: parser.EOF, Content: ""},
 			},
 		},
 		{
@@ -76,6 +85,7 @@ func TestTokenizer(t *testing.T) {
 				{Type: parser.Identifier, Content: "p"},
 				{Type: parser.Text, Content: " "},
 				{Type: parser.Identifier, Content: "a"},
+				{Type: parser.EOF, Content: ""},
 			},
 		},
 	}
