@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"slices"
+	"unicode"
 )
 
 type TokenType uint
@@ -141,6 +142,16 @@ func EqualStreams(a, b []Token) bool {
 	return true
 }
 
+func (t Token) ContainsWhitespaceOnly() bool {
+	for _, r := range t.Content {
+		if !unicode.IsSpace(r) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (t Token) String() string {
 	switch t.Type {
 	case Identifier:
@@ -153,5 +164,22 @@ func (t Token) String() string {
 		return "\x1b[96mEOF\x1b[0m"
 	default:
 		return t.Content
+	}
+}
+
+func (t TokenType) String() string {
+	switch t {
+	case Identifier:
+		return "\x1b[91mIdentifier\x1b[0m"
+	case Text:
+		return "\x1b[93mText\x1b[0m"
+	case LeftBrace:
+		return "\x1b[95mLeftBrace\x1b[0m"
+	case RightBrace:
+		return "\x1b[95mRightBrace\x1b[0m"
+	case EOF:
+		return "\x1b[96mEOF\x1b[0m"
+	default:
+		return "Unknown"
 	}
 }
