@@ -18,7 +18,7 @@ func NewParser(tokens []Token) Parser {
 	return parser
 }
 
-func (p *Parser) Parse() (Element, error) {
+func (p *Parser) Parse() (*Block, error) {
 	block := Block{
 		Nodes: []Element{},
 	}

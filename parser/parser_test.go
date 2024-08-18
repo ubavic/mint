@@ -1,7 +1,6 @@
 package parser_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"slices"
 	"testing"
@@ -13,7 +12,7 @@ func Test_Parser(t *testing.T) {
 
 	testCases := []struct {
 		input          []parser.Token
-		expectedResult parser.Element
+		expectedResult *parser.Block
 	}{
 		{
 			input: []parser.Token{},
@@ -263,8 +262,8 @@ func Test_Parser(t *testing.T) {
 					t.Fatalf("Expected no error, got \"%s\"", err)
 				}
 
-				resultJson, _ := json.Marshal(result)
-				expectedResultJson, _ := json.Marshal(testCase.expectedResult)
+				resultJson := result.Json()
+				expectedResultJson := testCase.expectedResult.Json()
 
 				if !slices.Equal(resultJson, expectedResultJson) {
 					t.Errorf("Results are not equal. Expected \n%v\ngot:\n%v\n", string(expectedResultJson), string(resultJson))

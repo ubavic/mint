@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -25,6 +26,15 @@ func (doc *Block) String() string {
 	}
 
 	return result
+}
+
+func (block *Block) Json() []byte {
+	json, err := json.Marshal(block)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return json
 }
 
 type Command struct {
