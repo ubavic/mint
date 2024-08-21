@@ -19,6 +19,19 @@ func NewParser(tokens []Token) Parser {
 }
 
 func (p *Parser) Parse() (*Block, error) {
+	block, err := p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.currentToken().Type != EOF {
+		return nil, errors.New("didn't reach end of file")
+	}
+
+	return block, nil
+}
+
+func (p *Parser) parseBlock() (*Block, error) {
 	block := Block{
 		Nodes: []Element{},
 	}
@@ -97,7 +110,7 @@ func (p *Parser) parseArgument() (Element, error) {
 		return nil, err
 	}
 
-	el, err := p.Parse()
+	el, err := p.parseBlock()
 	if err != nil {
 		return nil, err
 	}
