@@ -13,11 +13,11 @@ var ErrCommandNotFound = errors.New("command not found")
 var ErrCommandInvalidArguments = errors.New("command has invalid arguments")
 var ErrGroupNotFound = errors.New("group not found")
 
-func (s *Schema) Validate(document parser.Element) error {
+func (s Schema) Validate(document parser.Element) error {
 	return s.validate(document, nil)
 }
 
-func (s *Schema) validate(document parser.Element, parent *string) error {
+func (s Schema) validate(document parser.Element, parent *string) error {
 	var parentAllowedCommands []string
 	var err error
 
@@ -55,7 +55,7 @@ func (s *Schema) validate(document parser.Element, parent *string) error {
 	return nil
 }
 
-func (s *Schema) ValidateSingleCommand(name string, args int) error {
+func (s Schema) ValidateSingleCommand(name string, args int) error {
 	for _, command := range s.Source.Commands {
 		if command.Command == name {
 			if command.Arguments == args {
