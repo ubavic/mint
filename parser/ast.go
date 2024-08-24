@@ -14,11 +14,11 @@ type Block struct {
 	Nodes []Element
 }
 
-func (doc *Block) Content() []Element {
+func (doc Block) Content() []Element {
 	return doc.Nodes
 }
 
-func (doc *Block) String() string {
+func (doc Block) String() string {
 	result := ""
 
 	for _, node := range doc.Nodes {
@@ -28,7 +28,7 @@ func (doc *Block) String() string {
 	return result
 }
 
-func (block *Block) Json() []byte {
+func (block Block) Json() []byte {
 	json, err := json.Marshal(block)
 	if err != nil {
 		panic(err.Error())
@@ -42,11 +42,11 @@ type Command struct {
 	Arguments []Element
 }
 
-func (com *Command) Content() []Element {
+func (com Command) Content() []Element {
 	return com.Arguments
 }
 
-func (cmd *Command) String() string {
+func (cmd Command) String() string {
 	result := "@" + cmd.Name + "\n"
 
 	for _, arg := range cmd.Arguments {
@@ -60,10 +60,10 @@ type TextContent struct {
 	TextContent string
 }
 
-func (tc *TextContent) Content() []Element {
-	return []Element{tc}
+func (tc TextContent) Content() []Element {
+	return []Element{}
 }
 
-func (tc *TextContent) String() string {
+func (tc TextContent) String() string {
 	return tc.TextContent
 }
