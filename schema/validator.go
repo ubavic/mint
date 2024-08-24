@@ -22,8 +22,8 @@ func (s Schema) validate(document parser.Element, parent *string) error {
 	var err error
 
 	if parent == nil {
-		if s.Source.AllowedRootChildren != "" {
-			parentAllowedCommands, err = s.getGroup(s.Source.AllowedRootChildren)
+		if s.Source.AllowedRootCommands != "" {
+			parentAllowedCommands, err = s.getGroup(s.Source.AllowedRootCommands)
 			if err != nil {
 				return fmt.Errorf("%w: parent allowed commands", err)
 			}

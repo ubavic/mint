@@ -14,7 +14,7 @@ func TestSchemaValidator(t *testing.T) {
 		Commands            []schema.Command
 		Tokens              []parser.Token
 		Groups              []schema.Group
-		AllowedRootChildren string
+		AllowedRootCommands string
 		ExpectedError       error
 	}{
 		{
@@ -75,7 +75,7 @@ func TestSchemaValidator(t *testing.T) {
 				{Type: parser.Identifier, Content: "c1"},
 				{Type: parser.EOF, Content: ""},
 			},
-			AllowedRootChildren: "G1",
+			AllowedRootCommands: "G1",
 			Groups: []schema.Group{
 				{
 					Name:     "G1",
@@ -92,7 +92,7 @@ func TestSchemaValidator(t *testing.T) {
 				{Type: parser.Identifier, Content: "c1"},
 				{Type: parser.EOF, Content: ""},
 			},
-			AllowedRootChildren: "G1",
+			AllowedRootCommands: "G1",
 			Groups: []schema.Group{
 				{
 					Name:     "G1",
@@ -109,7 +109,7 @@ func TestSchemaValidator(t *testing.T) {
 			func(t *testing.T) {
 				sc := schema.Schema{
 					Source: schema.Source{
-						AllowedRootChildren: testCase.AllowedRootChildren,
+						AllowedRootCommands: testCase.AllowedRootCommands,
 						Commands:            testCase.Commands,
 						Groups:              testCase.Groups,
 					},

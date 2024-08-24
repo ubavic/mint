@@ -24,7 +24,7 @@ type Target struct {
 }
 
 type Source struct {
-	AllowedRootChildren string    `yaml:"allowedRootChildren"`
+	AllowedRootCommands string    `yaml:"allowedRootChildren"`
 	Commands            []Command `yaml:"commands"`
 	Groups              []Group   `yaml:"groups"`
 }
