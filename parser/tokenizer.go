@@ -34,6 +34,7 @@ func NewTokenizer(input *bufio.Reader) Tokenizer {
 
 func (tokenizer *Tokenizer) Tokenize() []Token {
 	tokens := []Token{}
+	var newTokens []Token
 
 	for {
 		r, _, err := tokenizer.input.ReadRune()
@@ -46,29 +47,25 @@ func (tokenizer *Tokenizer) Tokenize() []Token {
 			panic(err)
 		}
 
-		var token Token
-
 		switch r {
 		case '{':
-			token = Token{Type: LeftBrace, Content: "{"}
+			newTokens = []Token{{Type: LeftBrace, Content: "{"}}
 		case '}':
-			token = Token{Type: RightBrace, Content: "}"}
+			newTokens = []Token{{Type: RightBrace, Content: "}"}}
 		case '@':
-			identifier := tokenizer.tokenizeIdentifier()
-			token = Token{Type: Identifier, Content: identifier}
+			newTokens = tokenizer.tokenizeIdentifier("")
 		default:
 			tokenizer.input.UnreadRune()
-			text := tokenizer.tokenizeText()
-			token = Token{Type: Text, Content: text}
+			newTokens = tokenizer.tokenizeText("")
 		}
 
-		tokens = append(tokens, token)
+		tokens = append(tokens, newTokens...)
 	}
 
 }
 
-func (tokenizer *Tokenizer) tokenizeText() string {
-	text := ""
+func (tokenizer *Tokenizer) tokenizeText(start string) []Token {
+	text := start
 
 	for {
 		r, _, err := tokenizer.input.ReadRune()
@@ -81,19 +78,41 @@ func (tokenizer *Tokenizer) tokenizeText() string {
 			}
 		}
 
-		if slices.Contains([]rune("{}@"), r) {
+		if slices.Contains([]rune("{}"), r) {
 			tokenizer.input.UnreadRune()
 			break
+		} else if r == '@' {
+
+			nextRune, _, err := tokenizer.input.ReadRune()
+			if err != nil {
+				if err == io.EOF {
+					break
+				} else {
+					panic(err)
+				}
+			}
+
+			if slices.Contains([]rune("{}@"), nextRune) {
+				r = nextRune
+			} else {
+				identifier := tokenizer.tokenizeIdentifier(string(nextRune))
+
+				return append([]Token{{Type: Text, Content: text}}, identifier...)
+			}
 		}
 
 		text += string(r)
 	}
 
-	return text
+	return []Token{
+		{Type: Text, Content: text},
+	}
 }
 
-func (tokenizer *Tokenizer) tokenizeIdentifier() string {
-	identifier := ""
+// Tokenize identifier or a escaped sequence: `@@`, `@{`, `@}`
+func (tokenizer *Tokenizer) tokenizeIdentifier(start string) []Token {
+	identifier := start
+	firstPass := true
 
 	for {
 		r, _, err := tokenizer.input.ReadRune()
@@ -106,6 +125,10 @@ func (tokenizer *Tokenizer) tokenizeIdentifier() string {
 		}
 
 		if slices.Contains([]rune("{} @"), r) {
+			if firstPass {
+				return tokenizer.tokenizeText(string(r))
+			}
+
 			err := tokenizer.input.UnreadRune()
 			if err != nil {
 				panic(err)
@@ -115,9 +138,12 @@ func (tokenizer *Tokenizer) tokenizeIdentifier() string {
 		}
 
 		identifier += string(r)
+		firstPass = false
 	}
 
-	return identifier
+	return []Token{
+		Token{Type: Identifier, Content: identifier},
+	}
 }
 
 func EqualStreams(a, b []Token) bool {

@@ -88,6 +88,13 @@ func TestTokenizer(t *testing.T) {
 				{Type: parser.EOF, Content: ""},
 			},
 		},
+		{
+			input: "@{@@@}",
+			expectedResult: []parser.Token{
+				{Type: parser.Text, Content: "{@}"},
+				{Type: parser.EOF, Content: ""},
+			},
+		},
 	}
 
 	for i, testCase := range testCases {
