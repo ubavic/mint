@@ -12,6 +12,7 @@ var ErrCommandNotAllowed = errors.New("command not allowed")
 var ErrCommandNotFound = errors.New("command not found")
 var ErrCommandInvalidArguments = errors.New("command has invalid arguments")
 var ErrGroupNotFound = errors.New("group not found")
+var ErrTargetNotFound = errors.New("target not found")
 
 func (s Schema) Validate(document parser.Element) error {
 	return s.validate(document, nil)
@@ -23,18 +24,18 @@ func (s Schema) validate(document parser.Element, parent *string) error {
 
 	if parent == nil {
 		if s.Source.AllowedRootCommands != "" {
-			parentAllowedCommands, err = s.getGroup(s.Source.AllowedRootCommands)
+			parentAllowedCommands, err = s.GetGroupCommands(s.Source.AllowedRootCommands)
 			if err != nil {
 				return fmt.Errorf("%w: parent allowed commands", err)
 			}
 		}
 	} else {
-		command, err := s.getCommand(*parent)
+		command, err := s.GetCommand(*parent)
 		if err != nil {
 			return fmt.Errorf("%w: command %s", err, command.Command)
 		}
 
-		parentAllowedCommands, err = s.getGroup(command.Command)
+		parentAllowedCommands, err = s.GetGroupCommands(command.Command)
 		if err != nil {
 			return fmt.Errorf("%w: command %s", err, command.Command)
 		}
@@ -69,7 +70,7 @@ func (s Schema) ValidateSingleCommand(name string, args int) error {
 	return fmt.Errorf("%w: command %s is not found in the schema", ErrCommandNotFound, name)
 }
 
-func (s *Schema) getCommand(commandName string) (*Command, error) {
+func (s *Schema) GetCommand(commandName string) (*Command, error) {
 	for _, command := range s.Source.Commands {
 		if command.Command == commandName {
 			return &command, nil
@@ -79,7 +80,7 @@ func (s *Schema) getCommand(commandName string) (*Command, error) {
 	return nil, ErrCommandNotFound
 }
 
-func (s *Schema) getGroup(groupName string) ([]string, error) {
+func (s *Schema) GetGroupCommands(groupName string) ([]string, error) {
 	for _, group := range s.Source.Groups {
 		if group.Name == groupName {
 			return group.Commands, nil
