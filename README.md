@@ -1,10 +1,10 @@
 # Mint
 
-Mint is a document (meta)language and preprocessor which tries to be simple and flexible.
+Mint is a document (meta)language and preprocessor designed to be simple and flexible.
 
-Like in LaTex, in Mint grouping of text is done with braces. Unlike TeX, in Mint special character is not `\` but `@`, hence every command starts with `@` (eg. `@title`, `@bold`...). 
+Like in LaTeX, grouping of text in Mint is done using braces. However, unlike TeX, the special character in Mint is not `\` but `@`. Therefore, every command starts with `@` (e.g., `@title`, `@bold`...).
 
-Mint hasn't any predefined command (scaping sequences `@@`, `@{` and `@}` only look like commands), not even basic document commands like that for paragraph, title or text decorations. All commands should be defined by user in schema file called `mint.yaml`.  
+Mint doesn’t have any predefined commands (the escape sequences `@@`, `@{`, and `@}` only resemble commands). Even basic document commands like those for paragraphs, titles, or text decorations are not predefined. All commands must be defined by the user in a YAML schema file.
 
 ## Usage
 
@@ -18,22 +18,22 @@ See `./example`
 
 ## TODO
 
-Mint is still early in development phase, and here is a list of features that might be developed at some point:
+Mint is still in the early development phase. Below is a list of features that may be developed in the future:
 
- + command IDs
- + command parameters
- + intuitive handling of multiple files
- + begin/end commands
- + implicit command arguments
- + parameter typing
- + parameter description
- + more optimized tokenizer/parser/writer
- + schema validation
+ + Command IDs
+ + Command parameters
+ + Intuitive handling of multiple files
+ + Begin/end commands
+ + Implicit command arguments
+ + Parameter typing
+ + Parameter description
+ + More optimized tokenizer/parser/writer
+ + Schema validation
  + JSON input/output
- + stable API
- + allow schema written in `atex` 
+ + Stable API
+ + Allow schema written in atex
  + WASM filters
- + language server and extensions for editor
+ + Language server and extensions for editors
 
 ## License
 
