@@ -1,0 +1,56 @@
+mint: v0.1
+name: Example schema
+author: Nikola Ubavić
+version: v0.1
+source:
+  commands:
+    - command: title
+      description: Document title
+      arguments: 1
+    - command: p
+      description: Paragraph
+      arguments: 1
+      allowChildren: paragraphElements
+    - command: b
+      description: Bold text
+      arguments: 1
+    - command: link
+      description: Link
+      arguments: 2
+    - command: todo
+      description: Todo comment
+      arguments: 1
+  allowedRootChildren: blockElements
+  groups:
+    - name: blockElements
+      commands: [p, title, todo]
+    - name: paragraphElements
+      commands: [link, b]
+targets:
+  - name: HTML
+    extension: html
+    commands:
+      - command: title
+        expression: "<h1>$1</h1>"
+      - command: p
+        expression: "<p>$1</p>"
+      - command: b
+        expression: "<bold>$1</bold>"
+      - command: link
+        expression: "<a href=\"$2\">$1</a>"
+      - command: todo
+        expression: ""
+  - name: Latex
+    extension: tex
+    commands:
+      - command: title
+        expression: "\\title{$1}\n\n"
+      - command: p
+        expression: "$1\n\n"
+      - command: b
+        expression: "\\textbf{$1}"
+      - command: link
+        expression: "\\href{$2}{$1}"
+      - command: todo
+        expression: "\n% TODO: $1\n"
+
