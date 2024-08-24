@@ -255,7 +255,7 @@ func Test_Parser(t *testing.T) {
 			func(t *testing.T) {
 				t.Log(testCase.input)
 
-				np := parser.NewParser(testCase.input)
+				np := parser.NewParser(testCase.input, &parser.OptimisticValidator{})
 
 				result, err := np.Parse()
 				if err != nil {

@@ -1,12 +1,10 @@
 package schema
 
 type Schema struct {
-	Mint    string `yaml:"mint"`
-	Name    string `yaml:"name"`
-	Version string `yaml:"version"`
-	Source  struct {
-		Commands []Command `yaml:"commands"`
-	} `yaml:"source"`
+	Mint    string   `yaml:"mint"`
+	Name    string   `yaml:"name"`
+	Version string   `yaml:"version"`
+	Source  Source   `yaml:"source"`
 	Targets []Target `yaml:"targets"`
 }
 
@@ -23,4 +21,15 @@ type Target struct {
 		Command    string `yaml:"command"`
 		Expression string `yaml:"expression"`
 	} `yaml:"commands"`
+}
+
+type Source struct {
+	AllowedRootChildren string    `yaml:"allowedRootChildren"`
+	Commands            []Command `yaml:"commands"`
+	Groups              []Group   `yaml:"groups"`
+}
+
+type Group struct {
+	Name     string   `yaml:"name"`
+	Commands []string `yaml:"commands"`
 }

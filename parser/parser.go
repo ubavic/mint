@@ -1,25 +1,32 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 )
 
 type Parser struct {
 	tokens          []Token
 	currentPosition int
+	validator       Validator
 }
 
-func NewParser(tokens []Token) Parser {
+func NewParser(tokens []Token, validator Validator) Parser {
+	if validator == nil {
+		panic("Validator must not be nil.")
+	}
+
 	parser := Parser{
 		tokens:          tokens,
 		currentPosition: 0,
+		validator:       validator,
 	}
 
 	return parser
 }
 
 func (p *Parser) Parse() (*Block, error) {
-	block, err := p.parseBlock()
+	document, err := p.parseBlock()
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +35,12 @@ func (p *Parser) Parse() (*Block, error) {
 		return nil, errors.New("didn't reach end of file")
 	}
 
-	return block, nil
+	err = p.validator.Validate(document)
+	if err != nil {
+		return nil, fmt.Errorf("parsing error: %w", err)
+	}
+
+	return document, nil
 }
 
 func (p *Parser) parseBlock() (*Block, error) {
@@ -48,6 +60,11 @@ func (p *Parser) parseBlock() (*Block, error) {
 			}
 
 			args, err := p.parseArguments()
+			if err != nil {
+				return nil, err
+			}
+
+			err = p.validator.ValidateSingleCommand(command.Name, len(args))
 			if err != nil {
 				return nil, err
 			}
