@@ -89,3 +89,21 @@ func (s *Schema) GetGroupCommands(groupName string) ([]string, error) {
 
 	return nil, ErrGroupNotFound
 }
+
+func (s *Schema) GetTarget(targetName string) (*Target, error) {
+	if targetName == "" {
+		if len(s.Targets) == 0 {
+			return nil, ErrTargetNotFound
+		} else {
+			return &s.Targets[0], nil
+		}
+	}
+
+	for _, target := range s.Targets {
+		if target.Name == targetName {
+			return &target, nil
+		}
+	}
+
+	return nil, ErrTargetNotFound
+}
