@@ -10,7 +10,6 @@ import (
 )
 
 func TestTokenizer(t *testing.T) {
-
 	testCases := []struct {
 		input          string
 		expectedResult []parser.Token
@@ -92,6 +91,21 @@ func TestTokenizer(t *testing.T) {
 			input: "@{@@@}",
 			expectedResult: []parser.Token{
 				{Type: parser.Text, Content: "{@}"},
+				{Type: parser.EOF, Content: ""},
+			},
+		},
+		{
+			input: "@p{hello there}\n\n@p{how are you?}",
+			expectedResult: []parser.Token{
+				{Type: parser.Identifier, Content: "p"},
+				{Type: parser.LeftBrace, Content: "{"},
+				{Type: parser.Text, Content: "hello there"},
+				{Type: parser.RightBrace, Content: "}"},
+				{Type: parser.Text, Content: "\n\n"},
+				{Type: parser.Identifier, Content: "p"},
+				{Type: parser.LeftBrace, Content: "{"},
+				{Type: parser.Text, Content: "how are you?"},
+				{Type: parser.RightBrace, Content: "}"},
 				{Type: parser.EOF, Content: ""},
 			},
 		},
