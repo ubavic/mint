@@ -112,7 +112,7 @@ func (tokenizer *Tokenizer) tokenizeText(start string) []Token {
 // Tokenize identifier or a escaped sequence: `@@`, `@{`, `@}`
 func (tokenizer *Tokenizer) tokenizeIdentifier(start string) []Token {
 	identifier := start
-	firstPass := true
+	firstPass := start == ""
 
 	for {
 		r, _, err := tokenizer.input.ReadRune()
