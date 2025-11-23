@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"slices"
+	"strconv"
 	"unicode"
 )
 
@@ -11,6 +12,7 @@ type TokenType uint
 
 const (
 	Identifier TokenType = iota
+	CommandId
 	LeftBrace
 	RightBrace
 	Text
@@ -120,8 +122,6 @@ func (tokenizer *Tokenizer) tokenizeText(start string, startLine, startCol int) 
 		{Type: Text, Content: text, Line: startLine, Column: startCol},
 	}
 }
-
-// Tokenize identifier or a escaped sequence: `@@`, `@{`, `@}`
 func (tokenizer *Tokenizer) tokenizeIdentifier(start string, startLine, startCol int) []Token {
 	identifier := start
 	firstPass := start == ""
@@ -136,9 +136,14 @@ func (tokenizer *Tokenizer) tokenizeIdentifier(start string, startLine, startCol
 			}
 		}
 
-		if slices.Contains([]rune("{} @"), r) {
+		if slices.Contains([]rune("{} @#"), r) {
 			if firstPass {
 				return tokenizer.tokenizeText(string(r), tokenizer.lastLine, tokenizer.lastColumn)
+			}
+
+			if r == '#' {
+				idTokens := tokenizer.tokenizeCommandId(tokenizer.lastLine, tokenizer.lastColumn)
+				return append([]Token{{Type: Identifier, Content: identifier, Line: startLine, Column: startCol}}, idTokens...)
 			}
 
 			err := tokenizer.unreadRune()
@@ -158,6 +163,29 @@ func (tokenizer *Tokenizer) tokenizeIdentifier(start string, startLine, startCol
 	}
 }
 
+func (tokenizer *Tokenizer) tokenizeCommandId(startLine, startCol int) []Token {
+	id := ""
+	for {
+		r, _, err := tokenizer.readRune()
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				panic(err)
+			}
+		}
+
+		if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' || r == '-' {
+			id += string(r)
+		} else {
+			tokenizer.unreadRune()
+			break
+		}
+	}
+
+	return []Token{{Type: CommandId, Content: id, Line: startLine, Column: startCol}}
+}
+
 func EqualStreams(a, b []Token) bool {
 	if a == nil {
 		return b == nil
@@ -172,7 +200,7 @@ func EqualStreams(a, b []Token) bool {
 	}
 
 	for i := range a {
-		if a[i] != b[i] {
+		if a[i].Type != b[i].Type {
 			return false
 		}
 
@@ -228,13 +256,15 @@ func (t Token) ContainsWhitespaceOnly() bool {
 func (t Token) String() string {
 	switch t.Type {
 	case Identifier:
-		return "\x1b[91m" + t.Content + "\x1b[0m"
+		return "\x1b[91m" + t.Content + "\x1b[0m" + "(" + strconv.Itoa(t.Line) + ":" + strconv.Itoa(t.Column) + ")"
+	case CommandId:
+		return "\x1b[94m#" + t.Content + "\x1b[0m" + "(" + strconv.Itoa(t.Line) + ":" + strconv.Itoa(t.Column) + ")"
 	case Text:
-		return "\x1b[93m\"" + t.Content + "\"\x1b[0m"
+		return "\x1b[93m\"" + t.Content + "\"\x1b[0m" + "(" + strconv.Itoa(t.Line) + ":" + strconv.Itoa(t.Column) + ")"
 	case LeftBrace, RightBrace:
-		return "\x1b[95m" + t.Content + "\x1b[0m"
+		return "\x1b[95m" + t.Content + "\x1b[0m" + "(" + strconv.Itoa(t.Line) + ":" + strconv.Itoa(t.Column) + ")"
 	case EOF:
-		return "\x1b[96mEOF\x1b[0m"
+		return "\x1b[96mEOF\x1b[0m" + "(" + strconv.Itoa(t.Line) + ":" + strconv.Itoa(t.Column) + ")"
 	default:
 		return t.Content
 	}
@@ -244,6 +274,8 @@ func (t TokenType) String() string {
 	switch t {
 	case Identifier:
 		return "\x1b[91mIdentifier\x1b[0m"
+	case CommandId:
+		return "\x1b[94mCommandId\x1b[0m"
 	case Text:
 		return "\x1b[93mText\x1b[0m"
 	case LeftBrace:

@@ -39,6 +39,7 @@ func (block Block) Json() []byte {
 
 type Command struct {
 	Name      string
+	Id        string
 	Arguments []Element
 }
 
@@ -47,7 +48,11 @@ func (com Command) Content() []Element {
 }
 
 func (cmd Command) String() string {
-	result := "@" + cmd.Name + "\n"
+	id := ""
+	if cmd.Id != "" {
+		id = "#" + cmd.Id
+	}
+	result := "@" + cmd.Name + id + "\n"
 
 	for _, arg := range cmd.Arguments {
 		result += "  " + arg.String() + "\n"

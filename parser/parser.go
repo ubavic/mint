@@ -59,6 +59,13 @@ func (p *Parser) parseBlock() (*Block, error) {
 				Name: currentToken.Content,
 			}
 
+			p.next()
+
+			if p.currentToken().Type == CommandId {
+				command.Id = p.currentToken().Content
+				p.next()
+			}
+
 			args, err := p.parseArguments()
 			if err != nil {
 				return nil, err
@@ -87,7 +94,6 @@ func (p *Parser) parseBlock() (*Block, error) {
 
 func (p *Parser) parseArguments() ([]Element, error) {
 	arguments := []Element{}
-	start := true
 
 	for {
 		currentToken := p.currentToken()
@@ -106,18 +112,10 @@ func (p *Parser) parseArguments() ([]Element, error) {
 				p.unwind()
 				return arguments, nil
 			}
-		case RightBrace, EOF:
+		case RightBrace, EOF, Identifier, CommandId:
 			p.unwind()
 			return arguments, nil
-		case Identifier:
-			if !start {
-				p.unwind()
-				return arguments, nil
-			}
-			p.next()
 		}
-
-		start = false
 	}
 }
 

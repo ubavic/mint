@@ -247,6 +247,22 @@ func Test_Parser(t *testing.T) {
 				},
 			},
 		},
+		{
+			input: []parser.Token{
+				{Type: parser.Identifier, Content: "p"},
+				{Type: parser.CommandId, Content: "paragraph"},
+				{Type: parser.EOF, Content: ""},
+			},
+			expectedResult: &parser.Block{
+				Nodes: []parser.Element{
+					&parser.Command{
+						Name:      "p",
+						Id:        "paragraph",
+						Arguments: []parser.Element{},
+					},
+				},
+			},
+		},
 	}
 
 	for i, testCase := range testCases {

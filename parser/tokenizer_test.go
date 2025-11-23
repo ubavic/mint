@@ -109,6 +109,32 @@ func TestTokenizer(t *testing.T) {
 				{Type: parser.EOF, Content: "", Line: 3, Column: 17},
 			},
 		},
+		{
+			input: "@p#paragraph",
+			expectedResult: []parser.Token{
+				{Type: parser.Identifier, Content: "p", Line: 1, Column: 1},
+				{Type: parser.CommandId, Content: "paragraph", Line: 1, Column: 3},
+				{Type: parser.EOF, Content: "", Line: 1, Column: 13},
+			},
+		},
+		{
+			input: "@p#paragraph-1",
+			expectedResult: []parser.Token{
+				{Type: parser.Identifier, Content: "p", Line: 1, Column: 1},
+				{Type: parser.CommandId, Content: "paragraph-1", Line: 1, Column: 3},
+				{Type: parser.EOF, Content: "", Line: 1, Column: 15},
+			},
+		},
+		{
+			input: "@p{#just-text}",
+			expectedResult: []parser.Token{
+				{Type: parser.Identifier, Content: "p", Line: 1, Column: 1},
+				{Type: parser.LeftBrace, Content: "{", Line: 1, Column: 3},
+				{Type: parser.Text, Content: "#just-text", Line: 1, Column: 4},
+				{Type: parser.RightBrace, Content: "}", Line: 1, Column: 14},
+				{Type: parser.EOF, Content: "", Line: 1, Column: 15},
+			},
+		},
 	}
 
 	for i, testCase := range testCases {
