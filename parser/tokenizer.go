@@ -20,15 +20,23 @@ const (
 type Token struct {
 	Type    TokenType
 	Content string
+	Line    int
+	Column  int
 }
 
 type Tokenizer struct {
-	input *bufio.Reader
+	input      *bufio.Reader
+	line       int
+	column     int
+	lastLine   int
+	lastColumn int
 }
 
 func NewTokenizer(input *bufio.Reader) Tokenizer {
 	return Tokenizer{
-		input: input,
+		input:  input,
+		line:   1,
+		column: 1,
 	}
 }
 
@@ -37,10 +45,13 @@ func (tokenizer *Tokenizer) Tokenize() []Token {
 	var newTokens []Token
 
 	for {
-		r, _, err := tokenizer.input.ReadRune()
+		startLine := tokenizer.line
+		startCol := tokenizer.column
+
+		r, _, err := tokenizer.readRune()
 		if err != nil {
 			if err == io.EOF {
-				tokens = append(tokens, Token{Type: EOF})
+				tokens = append(tokens, Token{Type: EOF, Line: startLine, Column: startCol})
 				return tokens
 			}
 
@@ -49,14 +60,14 @@ func (tokenizer *Tokenizer) Tokenize() []Token {
 
 		switch r {
 		case '{':
-			newTokens = []Token{{Type: LeftBrace, Content: "{"}}
+			newTokens = []Token{{Type: LeftBrace, Content: "{", Line: startLine, Column: startCol}}
 		case '}':
-			newTokens = []Token{{Type: RightBrace, Content: "}"}}
+			newTokens = []Token{{Type: RightBrace, Content: "}", Line: startLine, Column: startCol}}
 		case '@':
-			newTokens = tokenizer.tokenizeIdentifier("")
+			newTokens = tokenizer.tokenizeIdentifier("", startLine, startCol)
 		default:
-			tokenizer.input.UnreadRune()
-			newTokens = tokenizer.tokenizeText("")
+			tokenizer.unreadRune()
+			newTokens = tokenizer.tokenizeText("", startLine, startCol)
 		}
 
 		tokens = append(tokens, newTokens...)
@@ -64,11 +75,11 @@ func (tokenizer *Tokenizer) Tokenize() []Token {
 
 }
 
-func (tokenizer *Tokenizer) tokenizeText(start string) []Token {
+func (tokenizer *Tokenizer) tokenizeText(start string, startLine, startCol int) []Token {
 	text := start
 
 	for {
-		r, _, err := tokenizer.input.ReadRune()
+		r, _, err := tokenizer.readRune()
 
 		if err != nil {
 			if err == io.EOF {
@@ -79,11 +90,13 @@ func (tokenizer *Tokenizer) tokenizeText(start string) []Token {
 		}
 
 		if slices.Contains([]rune("{}"), r) {
-			tokenizer.input.UnreadRune()
+			tokenizer.unreadRune()
 			break
 		} else if r == '@' {
+			atLine := tokenizer.lastLine
+			atCol := tokenizer.lastColumn
 
-			nextRune, _, err := tokenizer.input.ReadRune()
+			nextRune, _, err := tokenizer.readRune()
 			if err != nil {
 				if err == io.EOF {
 					break
@@ -95,9 +108,8 @@ func (tokenizer *Tokenizer) tokenizeText(start string) []Token {
 			if slices.Contains([]rune("{}@"), nextRune) {
 				r = nextRune
 			} else {
-				identifier := tokenizer.tokenizeIdentifier(string(nextRune))
-
-				return append([]Token{{Type: Text, Content: text}}, identifier...)
+				identifier := tokenizer.tokenizeIdentifier(string(nextRune), atLine, atCol)
+				return append([]Token{{Type: Text, Content: text, Line: startLine, Column: startCol}}, identifier...)
 			}
 		}
 
@@ -105,17 +117,17 @@ func (tokenizer *Tokenizer) tokenizeText(start string) []Token {
 	}
 
 	return []Token{
-		{Type: Text, Content: text},
+		{Type: Text, Content: text, Line: startLine, Column: startCol},
 	}
 }
 
 // Tokenize identifier or a escaped sequence: `@@`, `@{`, `@}`
-func (tokenizer *Tokenizer) tokenizeIdentifier(start string) []Token {
+func (tokenizer *Tokenizer) tokenizeIdentifier(start string, startLine, startCol int) []Token {
 	identifier := start
 	firstPass := start == ""
 
 	for {
-		r, _, err := tokenizer.input.ReadRune()
+		r, _, err := tokenizer.readRune()
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -126,10 +138,10 @@ func (tokenizer *Tokenizer) tokenizeIdentifier(start string) []Token {
 
 		if slices.Contains([]rune("{} @"), r) {
 			if firstPass {
-				return tokenizer.tokenizeText(string(r))
+				return tokenizer.tokenizeText(string(r), tokenizer.lastLine, tokenizer.lastColumn)
 			}
 
-			err := tokenizer.input.UnreadRune()
+			err := tokenizer.unreadRune()
 			if err != nil {
 				panic(err)
 			}
@@ -142,7 +154,7 @@ func (tokenizer *Tokenizer) tokenizeIdentifier(start string) []Token {
 	}
 
 	return []Token{
-		Token{Type: Identifier, Content: identifier},
+		{Type: Identifier, Content: identifier, Line: startLine, Column: startCol},
 	}
 }
 
@@ -163,9 +175,44 @@ func EqualStreams(a, b []Token) bool {
 		if a[i] != b[i] {
 			return false
 		}
+
+		if a[i].Line != b[i].Line || a[i].Column != b[i].Column {
+			return false
+		}
 	}
 
 	return true
+}
+
+func (tokenizer *Tokenizer) readRune() (rune, int, error) {
+	r, size, err := tokenizer.input.ReadRune()
+	if err != nil {
+		return r, size, err
+	}
+
+	tokenizer.lastLine = tokenizer.line
+	tokenizer.lastColumn = tokenizer.column
+
+	if r == '\n' {
+		tokenizer.line++
+		tokenizer.column = 1
+	} else {
+		tokenizer.column++
+	}
+
+	return r, size, nil
+}
+
+func (tokenizer *Tokenizer) unreadRune() error {
+	err := tokenizer.input.UnreadRune()
+	if err != nil {
+		return err
+	}
+
+	tokenizer.line = tokenizer.lastLine
+	tokenizer.column = tokenizer.lastColumn
+
+	return nil
 }
 
 func (t Token) ContainsWhitespaceOnly() bool {
