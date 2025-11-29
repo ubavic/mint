@@ -1,6 +1,6 @@
-# Mint
+# MINT
 
-Mint is a document (meta)language and preprocessor designed to be simple and flexible.
+MINT is a document markup language designed to be extensible and informative for humans.
 
 Like in LaTeX, grouping of text in Mint is done using braces. However, unlike TeX, the special character in Mint is not `\` but `@`. Therefore, every command starts with `@` (e.g., `@title`, `@bold`...).
 
@@ -8,32 +8,25 @@ Mint doesn’t have any predefined commands (the escape sequences `@@`, `@{`, an
 
 ## Usage
 
-You have to provide path to `.atex` file and `.yaml` schema:
+You have to provide path to `.mint` file and `.yaml` schema:
 
 ```
-mint -in "file.atex" -schema "schema.yaml" [-target TargetName]
+mint -in INPUT_FILE -schema SCHEMA_FILE [-target TARGET] [-out OUTPUT_FILE]
 ```
-
-See `./example`
 
 ## TODO
 
 Mint is still in the early development phase. Below is a list of features that may be developed in the future:
 
- + Command IDs
- + Command parameters
- + Intuitive handling of multiple files
- + Begin/end commands
- + Implicit command arguments
- + Parameter typing
- + Parameter description
- + More optimized tokenizer/parser/writer
- + Schema validation
- + JSON input/output
- + Stable API
- + Allow schema written in atex
- + WASM filters
- + Language server and extensions for editors
+- Schema validation
+- Parameter typing
+- Parameter description
+- Command parameters
+- Begin/end commands
+- More optimized tokenizer/parser/writer
+- Stable API
+- Language server and extensions for editors
+- Schema written in MINT
 
 ## License
 
