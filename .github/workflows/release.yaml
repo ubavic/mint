@@ -1,0 +1,98 @@
+name: "Build and release"
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+      - name: Test
+        run: go test ./...
+
+  buildLinux:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+      - name: Generate version file
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 | tail -c +2)
+          echo "$VERSION" >> cmd/version
+      - name: Build
+        run: |
+          go build -ldflags "-s -w" -o "mint.linux.amd64" cmd/.
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build-artifact
+          path: mint.linux.amd64
+
+  buildWindows:
+    runs-on: windows-latest
+    needs: [test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+      - name: Generate version file
+        run: |
+          $version = (git describe --tags --abbrev=0).Substring(1)
+          $version | Out-File -FilePath "cmd/version" -Append
+      - name: Build Debug version
+        run: |
+          go build -o "mint.windows.exe" cmd/.
+      - name: Upload Debug version
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-debug-build-artifact
+          path: mint.windows.exe
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [buildLinux, buildWindows]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+      - name: Move files
+        run: |
+          mv linux-build-artifact/* .
+          mv windows-build-artifact/* .
+      - name: Generate release body
+        run: |
+          touch changelog.md
+          git tag -l --format='%(contents)' ${{github.ref_name}} >> changelog.md
+          echo ''    >> changelog.md
+          echo '```' >> changelog.md
+          sha256sum mint.linux.amd64 >> changelog.md
+          echo '```' >> changelog.md
+          echo ''    >> changelog.md
+          echo '```' >> changelog.md
+          sha256sum mint.windows.exe >> changelog.md
+          echo '```' >> changelog.md
+          echo ''    >> changelog.md
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            mint.linux.amd64
+            mint.windows.exe
+          body_path: changelog.md
+          tag_name: ${{github.ref_name}}
