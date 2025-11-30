@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	_ "embed"
 	"flag"
 	"fmt"
 	"os"
@@ -12,14 +13,23 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+//go:embed version
+var version string
+
 func main() {
 	inputFileFlag := flag.String("in", "", "Specifies a input file")
 	schemaFileFlag := flag.String("schema", "", "Specifies a schema file")
 	targetFlag := flag.String("target", "", "Select target from schema")
 	outputFileFlag := flag.String("out", "", "Specifies a output file")
 	jsonFlag := flag.Bool("json", false, "Output JSON")
+	versionFlag := flag.Bool("version", false, "Print version and exit")
 
 	flag.Parse()
+
+	if *versionFlag {
+		fmt.Println(version)
+		return
+	}
 
 	config := Config{
 		InputFile:  *inputFileFlag,
