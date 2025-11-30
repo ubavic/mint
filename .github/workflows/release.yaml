@@ -34,7 +34,7 @@ jobs:
           echo "$VERSION" >> cmd/version
       - name: Build
         run: |
-          go build -ldflags "-s -w" -o "mint.linux.amd64" cmd/.
+          go build -ldflags "-s -w" -o "mint.linux.amd64" cmd/main.go
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
@@ -55,13 +55,13 @@ jobs:
         run: |
           $version = (git describe --tags --abbrev=0).Substring(1)
           $version | Out-File -FilePath "cmd/version" -Append
-      - name: Build Debug version
+      - name: Build
         run: |
-          go build -o "mint.windows.exe" cmd/.
-      - name: Upload Debug version
+          go build -o "mint.windows.exe" cmd/main.go
+      - name: Upload build
         uses: actions/upload-artifact@v4
         with:
-          name: windows-debug-build-artifact
+          name: windows-build-artifact
           path: mint.windows.exe
 
   release:
