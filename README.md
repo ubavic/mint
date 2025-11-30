@@ -18,9 +18,7 @@ mint -in INPUT_FILE -schema SCHEMA_FILE [-target TARGET] [-out OUTPUT_FILE]
 
 Mint is still in the early development phase. Below is a list of features that may be developed in the future:
 
-- Schema validation
 - Parameter typing
-- Parameter description
 - Command parameters
 - Begin/end commands
 - More optimized tokenizer/parser/writer

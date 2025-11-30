@@ -75,6 +75,11 @@ func process(config Config) error {
 		if err != nil {
 			return fmt.Errorf("can't unmarshal schema: %v", err.Error())
 		}
+
+		err = newSchema.Check()
+		if err != nil {
+			return fmt.Errorf("schema validation: %w", err)
+		}
 	}
 
 	fileBuf := bufio.NewReader(file)
