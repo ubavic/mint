@@ -71,7 +71,7 @@ func (p *Parser) parseBlock() (*Block, error) {
 				return nil, err
 			}
 
-			err = p.validator.ValidateSingleCommand(command.Name, len(args))
+			err = p.validator.ValidateCommand(command.Name, args)
 			if err != nil {
 				return nil, err
 			}

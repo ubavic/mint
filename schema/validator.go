@@ -56,15 +56,17 @@ func (s Schema) validate(document parser.Element, parent *string) error {
 	return nil
 }
 
-func (s Schema) ValidateSingleCommand(name string, args int) error {
+func (s Schema) ValidateCommand(name string, args []parser.Element) error {
 	for _, command := range s.Source.Commands {
-		if command.Command == name {
-			if command.Arguments == args {
-				return nil
-			} else {
-				return fmt.Errorf("%w: command %s requires %d arguments, but %d is given", ErrCommandInvalidArguments, name, command.Arguments, args)
-			}
+		if command.Command != name {
+			continue
 		}
+
+		if len(args) != len(command.Arguments) {
+			return fmt.Errorf("%w: command %s requires %d arguments, but %d is given", ErrCommandInvalidArguments, name, len(command.Arguments), len(args))
+		}
+
+		return nil
 	}
 
 	return fmt.Errorf("%w: command %s is not found in the schema", ErrCommandNotFound, name)

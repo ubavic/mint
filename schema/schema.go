@@ -10,9 +10,31 @@ type Schema struct {
 }
 
 type Command struct {
-	Command     string `yaml:"command"`
-	Arguments   int    `yaml:"arguments"`
-	Description string `yaml:"description"`
+	Command     string     `yaml:"command"`
+	Arguments   []Argument `yaml:"arguments"`
+	Description string     `yaml:"description"`
+}
+
+type ArgumentType string
+
+const (
+	ArgumentTypeString    ArgumentType = "string"
+	ArgumentTypeNumber    ArgumentType = "number"
+	ArgumentTypeBoolean   ArgumentType = "boolean"
+	ArgumentTypeReference ArgumentType = "reference"
+	ArgumentTypeAny       ArgumentType = "any"
+)
+
+type Argument struct {
+	Name              string
+	Description       string
+	Type              ArgumentType
+	DefaultValue      string  `yaml:"defaultValue,omitempty"`
+	defaultValueFloat float64 `yaml:"defaultValueFloat,omitempty"`
+	defaultValueBool  bool    `yaml:"defaultValueBool,omitempty"`
+	Min               float64 `yaml:"min,omitempty"`
+	Max               float64 `yaml:"max,omitempty"`
+	Pattern           string  `yaml:"pattern,omitempty"`
 }
 
 type Target struct {

@@ -19,8 +19,8 @@ func TestSchemaValidator(t *testing.T) {
 	}{
 		{
 			Commands: []schema.Command{
-				{Command: "c1", Arguments: 0},
-				{Command: "c2", Arguments: 0},
+				{Command: "c1", Arguments: nil},
+				{Command: "c2", Arguments: nil},
 			},
 			Tokens: []parser.Token{
 				{Type: parser.Identifier, Content: "c1"},
@@ -31,7 +31,7 @@ func TestSchemaValidator(t *testing.T) {
 		},
 		{
 			Commands: []schema.Command{
-				{Command: "c1", Arguments: 0},
+				{Command: "c1", Arguments: nil},
 			},
 			Tokens: []parser.Token{
 				{Type: parser.Identifier, Content: "c2"},
@@ -41,7 +41,7 @@ func TestSchemaValidator(t *testing.T) {
 		},
 		{
 			Commands: []schema.Command{
-				{Command: "c1", Arguments: 2},
+				{Command: "c1", Arguments: make([]schema.Argument, 2)},
 			},
 			Tokens: []parser.Token{
 				{Type: parser.Identifier, Content: "c1"},
@@ -55,7 +55,7 @@ func TestSchemaValidator(t *testing.T) {
 		},
 		{
 			Commands: []schema.Command{
-				{Command: "c1", Arguments: 3},
+				{Command: "c1", Arguments: make([]schema.Argument, 3)},
 			},
 			Tokens: []parser.Token{
 				{Type: parser.Identifier, Content: "c1"},
@@ -69,7 +69,7 @@ func TestSchemaValidator(t *testing.T) {
 		},
 		{
 			Commands: []schema.Command{
-				{Command: "c1", Arguments: 0},
+				{Command: "c1", Arguments: nil},
 			},
 			Tokens: []parser.Token{
 				{Type: parser.Identifier, Content: "c1"},
@@ -86,7 +86,7 @@ func TestSchemaValidator(t *testing.T) {
 		},
 		{
 			Commands: []schema.Command{
-				{Command: "c1", Arguments: 0},
+				{Command: "c1", Arguments: nil},
 			},
 			Tokens: []parser.Token{
 				{Type: parser.Identifier, Content: "c1"},
