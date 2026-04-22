@@ -3,6 +3,7 @@ package schema
 type Schema struct {
 	Mint    string   `yaml:"mint"`
 	Name    string   `yaml:"name"`
+	Author  string   `yaml:"author"`
 	Version string   `yaml:"version"`
 	Source  Source   `yaml:"source"`
 	Targets []Target `yaml:"targets"`
@@ -24,7 +25,7 @@ type Target struct {
 }
 
 type Source struct {
-	AllowedRootCommands string    `yaml:"allowedRootChildren"`
+	AllowedRootCommands string    `yaml:"allowedRootChildren,omitempty"`
 	Commands            []Command `yaml:"commands"`
 	Groups              []Group   `yaml:"groups"`
 }
