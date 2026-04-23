@@ -179,3 +179,43 @@ func Test_EqualStreams(t *testing.T) {
 		t.Error("Streams should be equal")
 	}
 }
+
+func TestTokenizerVerbatimArgument(t *testing.T) {
+	reader := bufio.NewReader(strings.NewReader("{>>hello world {}<<}"))
+	tokenizer := parser.NewTokenizer(reader)
+
+	result := tokenizer.Tokenize()
+	if len(result) != 4 {
+		t.Fatalf("expected 4 tokens, got %d", len(result))
+	}
+
+	if result[0].Type != parser.LeftBrace {
+		t.Fatalf("expected first token to be LeftBrace, got %v", result[0].Type)
+	}
+
+	if result[1].Type != parser.Text || result[1].Content != "hello world {}" {
+		t.Fatalf("expected verbatim text %q, got token %#v", "hello world {}", result[1])
+	}
+
+	if result[2].Type != parser.RightBrace {
+		t.Fatalf("expected third token to be RightBrace, got %v", result[2].Type)
+	}
+
+	if result[3].Type != parser.EOF {
+		t.Fatalf("expected EOF token, got %v", result[3].Type)
+	}
+}
+
+func TestTokenizerVerbatimMarkersMustBeAdjacent(t *testing.T) {
+	reader := bufio.NewReader(strings.NewReader("{ >> hello << }"))
+	tokenizer := parser.NewTokenizer(reader)
+
+	result := tokenizer.Tokenize()
+	if len(result) != 4 {
+		t.Fatalf("expected 4 tokens, got %d", len(result))
+	}
+
+	if result[1].Type != parser.Text || result[1].Content != " >> hello << " {
+		t.Fatalf("expected normal text token %q, got token %#v", " >> hello << ", result[1])
+	}
+}

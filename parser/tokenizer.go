@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"slices"
+	"strings"
 	"strconv"
 	"unicode"
 )
@@ -62,7 +63,11 @@ func (tokenizer *Tokenizer) Tokenize() []Token {
 
 		switch r {
 		case '{':
-			newTokens = []Token{{Type: LeftBrace, Content: "{", Line: startLine, Column: startCol}}
+			if tokenizer.isVerbatimStart() {
+				newTokens = tokenizer.tokenizeVerbatim(startLine, startCol)
+			} else {
+				newTokens = []Token{{Type: LeftBrace, Content: "{", Line: startLine, Column: startCol}}
+			}
 		case '}':
 			newTokens = []Token{{Type: RightBrace, Content: "}", Line: startLine, Column: startCol}}
 		case '@':
@@ -75,6 +80,78 @@ func (tokenizer *Tokenizer) Tokenize() []Token {
 		tokens = append(tokens, newTokens...)
 	}
 
+}
+
+func (tokenizer *Tokenizer) isVerbatimStart() bool {
+	peeked, err := tokenizer.input.Peek(2)
+	if err != nil {
+		return false
+	}
+
+	return string(peeked) == ">>"
+}
+
+func (tokenizer *Tokenizer) tokenizeVerbatim(startLine, startCol int) []Token {
+	leftBrace := Token{Type: LeftBrace, Content: "{", Line: startLine, Column: startCol}
+
+	// Consume the opening >> marker. The opening { has already been read.
+	for range 2 {
+		_, _, err := tokenizer.readRune()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	textStartLine := tokenizer.line
+	textStartCol := tokenizer.column
+	var text strings.Builder
+
+	for {
+		if tokenizer.isVerbatimEnd() {
+			rightBrace := tokenizer.consumeVerbatimEnd()
+			tokens := []Token{leftBrace}
+			tokens = append(tokens, Token{Type: Text, Content: text.String(), Line: textStartLine, Column: textStartCol})
+			tokens = append(tokens, rightBrace)
+			return tokens
+		}
+
+		r, _, err := tokenizer.readRune()
+		if err != nil {
+			if err == io.EOF {
+				return []Token{
+					leftBrace,
+					{Type: Text, Content: text.String(), Line: textStartLine, Column: textStartCol},
+				}
+			}
+
+			panic(err)
+		}
+
+		text.WriteRune(r)
+	}
+}
+
+func (tokenizer *Tokenizer) isVerbatimEnd() bool {
+	peeked, err := tokenizer.input.Peek(3)
+	if err != nil {
+		return false
+	}
+
+	return string(peeked) == "<<}"
+}
+
+func (tokenizer *Tokenizer) consumeVerbatimEnd() Token {
+	rightBraceLine := tokenizer.line
+	rightBraceColumn := tokenizer.column + 2
+
+	for range 3 {
+		_, _, err := tokenizer.readRune()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return Token{Type: RightBrace, Content: "}", Line: rightBraceLine, Column: rightBraceColumn}
 }
 
 func (tokenizer *Tokenizer) tokenizeText(start string, startLine, startCol int) []Token {

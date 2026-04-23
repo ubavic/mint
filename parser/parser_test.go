@@ -1,8 +1,10 @@
 package parser_test
 
 import (
+	"bufio"
 	"fmt"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/ubavic/mint/parser"
@@ -285,5 +287,38 @@ func Test_Parser(t *testing.T) {
 					t.Errorf("Results are not equal. Expected \n%v\ngot:\n%v\n", string(expectedResultJson), string(resultJson))
 				}
 			})
+	}
+}
+
+func TestParserVerbatimArgument(t *testing.T) {
+	reader := bufio.NewReader(strings.NewReader("@p{>>hello world {}<<}"))
+	tokenizer := parser.NewTokenizer(reader)
+	tokens := tokenizer.Tokenize()
+
+	np := parser.NewParser(tokens, &parser.OptimisticValidator{})
+	result, err := np.Parse()
+	if err != nil {
+		t.Fatalf("expected no error, got %q", err)
+	}
+
+	expected := &parser.Block{
+		Nodes: []parser.Element{
+			&parser.Command{
+				Name: "p",
+				Arguments: []parser.Element{
+					&parser.Block{
+						Nodes: []parser.Element{
+							&parser.TextContent{
+								TextContent: "hello world {}",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if !slices.Equal(result.Json(), expected.Json()) {
+		t.Fatalf("expected %s, got %s", string(expected.Json()), string(result.Json()))
 	}
 }

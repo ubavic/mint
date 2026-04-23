@@ -158,14 +158,14 @@ func (s Schema) CheckCompatibility(compilerVersion string) error {
 
 	if compilerSemver.Major == 0 {
 		if schemaVersion.Minor != compilerSemver.Minor {
-			return fmt.Errorf("%w: schema %s is incompatible with compiler %s", ErrIncompatibleMintVersion, s.Mint, compilerDisplayVersion)
+			return fmt.Errorf("%w: schema %s is incompatible with compiler %s; while Mint is below v1.0.0, supported schemas must match the compiler major and minor version exactly (expected v0.%d.x)", ErrIncompatibleMintVersion, s.Mint, compilerDisplayVersion, compilerSemver.Minor)
 		}
 
 		return nil
 	}
 
 	if schemaVersion.Minor > compilerSemver.Minor {
-		return fmt.Errorf("%w: schema %s is incompatible with compiler %s", ErrIncompatibleMintVersion, s.Mint, compilerDisplayVersion)
+		return fmt.Errorf("%w: schema %s is incompatible with compiler %s; supported schemas for major version %d must have minor version <= %d", ErrIncompatibleMintVersion, s.Mint, compilerDisplayVersion, compilerSemver.Major, compilerSemver.Minor)
 	}
 
 	return nil
