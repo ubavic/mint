@@ -23,7 +23,7 @@ func process(config Config) error {
 	var newSchema *schema.Schema = nil
 
 	if config.SchemaFile != "" {
-		s, err := schema.OpenAndValidateSchema(config.SchemaFile)
+		s, err := schema.OpenAndValidateSchema(config.SchemaFile, version)
 		newSchema = &s
 		if err != nil {
 			return err

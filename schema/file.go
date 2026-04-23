@@ -9,7 +9,7 @@ import (
 
 const DefaultSchemaFilename = "mint.yaml"
 
-func OpenAndValidateSchema(filename string) (Schema, error) {
+func OpenAndValidateSchema(filename string, compilerVersion string) (Schema, error) {
 	var schema Schema
 
 	if filename == "" {
@@ -29,6 +29,11 @@ func OpenAndValidateSchema(filename string) (Schema, error) {
 	err = schema.Check()
 	if err != nil {
 		return schema, fmt.Errorf("validating schema: %w", err)
+	}
+
+	err = schema.CheckCompatibility(compilerVersion)
+	if err != nil {
+		return schema, fmt.Errorf("checking schema compatibility: %w", err)
 	}
 
 	return schema, nil

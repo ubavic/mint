@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 var ErrMultipleComandDefinitions = errors.New("command defined multiple times")
@@ -28,18 +29,25 @@ var ErrMultipleTargetDefinitions = errors.New("target defined multiple times")
 var ErrUnknownTarget = errors.New("unknown target")
 
 var ErrInvalidVersionFormat = errors.New("invalid version format")
+var ErrIncompatibleMintVersion = errors.New("schema mint version is not supported by this compiler")
 
 var nameValidator = regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_]*$")
+var schemaVersionValidator = regexp.MustCompile(`^v\d+\.\d+(\.\d+)?$`)
+var compilerVersionValidator = regexp.MustCompile(`^v?\d+\.\d+(\.\d+)?$`)
+
+type mintVersion struct {
+	Major int
+	Minor int
+	Patch int
+}
 
 func (s Schema) Check() error {
-	versionValidator := regexp.MustCompile(`^v\d+\.\d+(\.\d+)?$`)
-
-	if !versionValidator.MatchString(s.Mint) {
+	if !schemaVersionValidator.MatchString(s.Mint) {
 		return fmt.Errorf("%w: %s", ErrInvalidVersionFormat, s.Mint)
 	}
 
 	if s.Version != "" {
-		if !versionValidator.MatchString(s.Version) {
+		if !schemaVersionValidator.MatchString(s.Version) {
 			return fmt.Errorf("%w: %s", ErrInvalidVersionFormat, s.Version)
 		}
 	}
@@ -131,6 +139,38 @@ func (s Schema) Check() error {
 	return nil
 }
 
+func (s Schema) CheckCompatibility(compilerVersion string) error {
+	schemaVersion, err := parseMintVersion(s.Mint, true)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrInvalidVersionFormat, s.Mint)
+	}
+
+	compilerSemver, err := parseMintVersion(compilerVersion, false)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrInvalidVersionFormat, compilerVersion)
+	}
+
+	compilerDisplayVersion := schemaVersionString(compilerSemver)
+
+	if schemaVersion.Major != compilerSemver.Major {
+		return fmt.Errorf("%w: schema %s is incompatible with compiler %s; supported schemas must use major version %d", ErrIncompatibleMintVersion, s.Mint, compilerDisplayVersion, compilerSemver.Major)
+	}
+
+	if compilerSemver.Major == 0 {
+		if schemaVersion.Minor != compilerSemver.Minor {
+			return fmt.Errorf("%w: schema %s is incompatible with compiler %s", ErrIncompatibleMintVersion, s.Mint, compilerDisplayVersion)
+		}
+
+		return nil
+	}
+
+	if schemaVersion.Minor > compilerSemver.Minor {
+		return fmt.Errorf("%w: schema %s is incompatible with compiler %s", ErrIncompatibleMintVersion, s.Mint, compilerDisplayVersion)
+	}
+
+	return nil
+}
+
 func (argument *Argument) Check() error {
 	if argument.Name == "" {
 		return ErrEmptyArgumentName
@@ -198,4 +238,44 @@ func (argument *Argument) Check() error {
 	}
 
 	return nil
+}
+
+func parseMintVersion(version string, requirePrefix bool) (mintVersion, error) {
+	validator := compilerVersionValidator
+	if requirePrefix {
+		validator = schemaVersionValidator
+	}
+
+	if !validator.MatchString(version) {
+		return mintVersion{}, ErrInvalidVersionFormat
+	}
+
+	parts := strings.Split(strings.TrimPrefix(version, "v"), ".")
+	major, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return mintVersion{}, fmt.Errorf("%w: %s", ErrInvalidVersionFormat, version)
+	}
+
+	minor, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return mintVersion{}, fmt.Errorf("%w: %s", ErrInvalidVersionFormat, version)
+	}
+
+	patch := 0
+	if len(parts) == 3 {
+		patch, err = strconv.Atoi(parts[2])
+		if err != nil {
+			return mintVersion{}, fmt.Errorf("%w: %s", ErrInvalidVersionFormat, version)
+		}
+	}
+
+	return mintVersion{
+		Major: major,
+		Minor: minor,
+		Patch: patch,
+	}, nil
+}
+
+func schemaVersionString(version mintVersion) string {
+	return fmt.Sprintf("v%d.%d.%d", version.Major, version.Minor, version.Patch)
 }

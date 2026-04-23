@@ -20,7 +20,7 @@ func buildProject() error {
 		return err
 	}
 
-	_, err = schema.OpenAndValidateSchema(flags.Schema)
+	_, err = schema.OpenAndValidateSchema(flags.Schema, version)
 	if err != nil {
 		return err
 	}

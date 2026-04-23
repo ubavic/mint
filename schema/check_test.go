@@ -580,3 +580,92 @@ func TestArgumentCheckValidationErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestSchemaCheckCompatibility(t *testing.T) {
+	testCases := []struct {
+		name            string
+		schema          schema.Schema
+		compilerVersion string
+		expectedError   error
+		expectedMessage string
+	}{
+		{
+			name: "pre 1.0 exact minor match",
+			schema: schema.Schema{
+				Mint: "v0.3.5",
+			},
+			compilerVersion: "0.3.0",
+		},
+		{
+			name: "pre 1.0 different minor is rejected",
+			schema: schema.Schema{
+				Mint: "v0.4.0",
+			},
+			compilerVersion: "0.3.1",
+			expectedError:   schema.ErrIncompatibleMintVersion,
+			expectedMessage: "must match the compiler major and minor version exactly",
+		},
+		{
+			name: "major version must match after 1.0",
+			schema: schema.Schema{
+				Mint: "v2.0.0",
+			},
+			compilerVersion: "1.4.0",
+			expectedError:   schema.ErrIncompatibleMintVersion,
+			expectedMessage: "supported schemas must use major version 1",
+		},
+		{
+			name: "after 1.0 older minor versions are supported",
+			schema: schema.Schema{
+				Mint: "v1.2.7",
+			},
+			compilerVersion: "1.4.0",
+		},
+		{
+			name: "after 1.0 newer minor versions are rejected",
+			schema: schema.Schema{
+				Mint: "v1.5.0",
+			},
+			compilerVersion: "1.4.2",
+			expectedError:   schema.ErrIncompatibleMintVersion,
+			expectedMessage: "must have minor version <= 4",
+		},
+		{
+			name: "compiler version can include v prefix",
+			schema: schema.Schema{
+				Mint: "v1.4.0",
+			},
+			compilerVersion: "v1.4.2",
+		},
+		{
+			name: "invalid compiler version format",
+			schema: schema.Schema{
+				Mint: "v1.4.0",
+			},
+			compilerVersion: "version-one",
+			expectedError:   schema.ErrInvalidVersionFormat,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			err := testCase.schema.CheckCompatibility(testCase.compilerVersion)
+
+			if testCase.expectedError == nil {
+				if err != nil {
+					t.Fatalf("expected no error but got %v", err)
+				}
+
+				return
+			}
+
+			if !errors.Is(err, testCase.expectedError) {
+				t.Fatalf("expected error %v but got %v", testCase.expectedError, err)
+			}
+
+			if testCase.expectedMessage != "" && !strings.Contains(err.Error(), testCase.expectedMessage) {
+				t.Fatalf("expected error to contain %q but got %q", testCase.expectedMessage, err.Error())
+			}
+		})
+	}
+}
