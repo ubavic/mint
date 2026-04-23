@@ -15,6 +15,10 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
+      - name: Generate version file
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 | tail -c +2)
+          echo "$VERSION" >> cmd/version
       - name: Test
         run: go test ./...
       - name: Verify CLI build
@@ -66,9 +70,55 @@ jobs:
           name: windows-build-artifact
           path: mint.windows.exe
 
+  buildMacIntel:
+    runs-on: macos-15-intel
+    needs: [test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+      - name: Generate version file
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 | tail -c +2)
+          echo "$VERSION" >> cmd/version
+      - name: Build
+        run: |
+          GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -o "mint.macos.amd64" ./cmd
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-intel-build-artifact
+          path: mint.macos.amd64
+
+  buildMacArm:
+    runs-on: macos-latest
+    needs: [test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+      - name: Generate version file
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 | tail -c +2)
+          echo "$VERSION" >> cmd/version
+      - name: Build
+        run: |
+          GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -o "mint.macos.arm64" ./cmd
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-arm-build-artifact
+          path: mint.macos.arm64
+
   release:
     runs-on: ubuntu-latest
-    needs: [buildLinux, buildWindows]
+    needs: [buildLinux, buildWindows, buildMacIntel, buildMacArm]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -77,6 +127,8 @@ jobs:
         run: |
           mv linux-build-artifact/* .
           mv windows-build-artifact/* .
+          mv mac-intel-build-artifact/* .
+          mv mac-arm-build-artifact/* .
       - name: Generate release body
         run: |
           touch changelog.md
@@ -88,5 +140,7 @@ jobs:
           files: |
             mint.linux.amd64
             mint.windows.exe
+            mint.macos.amd64
+            mint.macos.arm64
           body_path: changelog.md
           tag_name: ${{github.ref_name}}
