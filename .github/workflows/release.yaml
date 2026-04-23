@@ -81,15 +81,7 @@ jobs:
         run: |
           touch changelog.md
           git tag -l --format='%(contents)' ${{github.ref_name}} >> changelog.md
-          echo ''    >> changelog.md
-          echo '```' >> changelog.md
-          sha256sum mint.linux.amd64 >> changelog.md
-          echo '```' >> changelog.md
-          echo ''    >> changelog.md
-          echo '```' >> changelog.md
-          sha256sum mint.windows.exe >> changelog.md
-          echo '```' >> changelog.md
-          echo ''    >> changelog.md
+          echo '' >> changelog.md
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
