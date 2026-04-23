@@ -1,4 +1,4 @@
-mint: v0.1
+mint: v0.0.1
 name: Example schema
 author: Nikola Ubavić
 version: v0.1
@@ -6,20 +6,30 @@ source:
   commands:
     - command: title
       description: Document title
-      arguments: 1
+      arguments:
+        - name: title
+          type: string
     - command: p
       description: Paragraph
-      arguments: 1
+      arguments:
+        - name: content
       allowChildren: paragraphElements
     - command: b
       description: Bold text
-      arguments: 1
+      argument:
+        - name: content
+          type: string
     - command: link
       description: Link
-      arguments: 2
+      argument:
+        - name: text
+          type: string
+        - name: url
+          type: string
     - command: todo
       description: Todo comment
-      arguments: 1
+      argument:
+        - name: content
   allowedRootChildren: blockElements
   groups:
     - name: blockElements
@@ -31,13 +41,13 @@ targets:
     extension: html
     commands:
       - command: title
-        expression: "<h1>$1</h1>"
+        expression: "<h1>$1</h1>\n"
       - command: p
-        expression: "<p>$1</p>"
+        expression: "<p>$1</p>\n"
       - command: b
-        expression: "<bold>$1</bold>"
+        expression: "<bold>$1</bold>\n"
       - command: link
-        expression: "<a href=\"$2\">$1</a>"
+        expression: "<a href=\"$2\">$1</a>\n" 
       - command: todo
         expression: ""
   - name: Latex
@@ -53,4 +63,3 @@ targets:
         expression: "\\href{$2}{$1}"
       - command: todo
         expression: "\n% TODO: $1\n"
-
