@@ -17,6 +17,8 @@ jobs:
           go-version: "stable"
       - name: Test
         run: go test ./...
+      - name: Verify CLI build
+        run: go build -o /tmp/mint ./cmd
 
   buildLinux:
     runs-on: ubuntu-latest
@@ -34,7 +36,7 @@ jobs:
           echo "$VERSION" >> cmd/version
       - name: Build
         run: |
-          go build -ldflags "-s -w" -o "mint.linux.amd64" cmd/main.go
+          go build -ldflags "-s -w" -o "mint.linux.amd64" ./cmd
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
@@ -57,7 +59,7 @@ jobs:
           $version | Out-File -FilePath "cmd/version" -Append
       - name: Build
         run: |
-          go build -o "mint.windows.exe" cmd/main.go
+          go build -o "mint.windows.exe" ./cmd
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
