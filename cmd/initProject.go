@@ -25,7 +25,7 @@ func initProject() error {
 
 	s := schema.Schema{
 		Mint:    version,
-		Version: "v0.0.0",
+		Version: "v0.0.1",
 		Author:  os.Getenv("USER"),
 		Source: schema.Source{
 			AllowedRootCommands: "p",
