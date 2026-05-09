@@ -32,12 +32,12 @@ func (s Schema) validate(document parser.Element, parent *string) error {
 	} else {
 		command, err := s.GetCommand(*parent)
 		if err != nil {
-			return fmt.Errorf("%w: command %s", err, command.Command)
+			return fmt.Errorf("%w: command %q", err, command.Command)
 		}
 
 		parentAllowedCommands, err = s.GetGroupCommands(command.Command)
 		if err != nil {
-			return fmt.Errorf("%w: command %s", err, command.Command)
+			return fmt.Errorf("%w: command %q", err, command.Command)
 		}
 	}
 
@@ -48,7 +48,7 @@ func (s Schema) validate(document parser.Element, parent *string) error {
 	for _, el := range document.Content() {
 		if command, ok := el.(*parser.Command); ok {
 			if !slices.Contains(parentAllowedCommands, command.Name) {
-				return fmt.Errorf("%w: command %s is not in list %v", ErrCommandNotFound, command.Name, parentAllowedCommands)
+				return fmt.Errorf("%w: command %q is not in list %v", ErrCommandNotFound, command.Name, parentAllowedCommands)
 			}
 		}
 	}
@@ -63,13 +63,13 @@ func (s Schema) ValidateCommand(name string, args []parser.Element) error {
 		}
 
 		if len(args) != len(command.Arguments) {
-			return fmt.Errorf("%w: command %s requires %d arguments, but %d is given", ErrCommandInvalidArguments, name, len(command.Arguments), len(args))
+			return fmt.Errorf("%w: command %q requires %d arguments, but %d is given", ErrCommandInvalidArguments, name, len(command.Arguments), len(args))
 		}
 
 		return nil
 	}
 
-	return fmt.Errorf("%w: command %s is not found in the schema", ErrCommandNotFound, name)
+	return fmt.Errorf("%w: command %q is not found in the schema", ErrCommandNotFound, name)
 }
 
 func (s *Schema) GetCommand(commandName string) (*Command, error) {

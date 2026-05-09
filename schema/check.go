@@ -75,7 +75,7 @@ func (s Schema) Check() error {
 		}
 	}
 
-	groupNames := make([]string, 0, len(s.Source.Commands))
+	groupNames := make([]string, 0, len(s.Source.Groups))
 	for _, group := range s.Source.Groups {
 		if group.Name == "" {
 			return ErrEmptyGroupName
@@ -88,7 +88,7 @@ func (s Schema) Check() error {
 		if slices.Contains(groupNames, group.Name) {
 			return fmt.Errorf("%w: %s", ErrMultipleGroupDefinitions, group.Name)
 		} else {
-			groupNames = append(commandNames, group.Name)
+			groupNames = append(groupNames, group.Name)
 		}
 
 		for _, cmd := range group.Commands {
@@ -100,7 +100,7 @@ func (s Schema) Check() error {
 
 	if s.Source.AllowedRootCommands != "" {
 		if !slices.Contains(groupNames, s.Source.AllowedRootCommands) {
-			return fmt.Errorf("%w %s as allowed root comands", ErrUnknownGroup, s.Source.AllowedRootCommands)
+			return fmt.Errorf("%w %s as allowed root commands", ErrUnknownGroup, s.Source.AllowedRootCommands)
 		}
 	}
 
